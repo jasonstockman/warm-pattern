@@ -4,9 +4,9 @@ import toLower from 'lodash/toLower';
 import Button from 'plaid-threads/Button';
 
 import { AccountType } from './types';
-import useTransactions from '../services/transactions.tsx';
-import { currencyFilter } from '../util/index.tsx';
-import TransactionsTable from './TransactionsTable.tsx';
+import useTransactions from "../services/transactions";
+import { currencyFilter } from "../util/index";
+import TransactionsTable from "./TransactionsTable";
 
 interface Props {
   account: AccountType;
@@ -31,7 +31,7 @@ export default function AccountCard(props: Props) {
 
   useEffect(() => {
     getTransactionsByAccount(id);
-  }, [getTransactionsByAccount, transactionsByAccount, id]);
+  }, [getTransactionsByAccount, id]);
 
   useEffect(() => {
     setTransactions(transactionsByAccount[id] || []);

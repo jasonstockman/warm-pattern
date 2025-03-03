@@ -1,37 +1,50 @@
-import React, { useEffect, useState } from 'react';
-import { Link, RouteComponentProps } from 'react-router-dom';
+import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 import sortBy from 'lodash/sortBy';
-import NavigationLink from 'plaid-threads/NavigationLink';
 import LoadingSpinner from 'plaid-threads/LoadingSpinner';
 import Callout from 'plaid-threads/Callout';
 import Button from 'plaid-threads/Button';
 
-import { RouteInfo, ItemType, AccountType, AssetType } from './types';
+import { ItemType, AccountType, AssetType, UserType } from './types';
 
-import useItems from '../services/items.tsx';
-import useTransactions from '../services/transactions.tsx';
-import useUsers from '../services/users.tsx';
-import useAssets from '../services/assets.tsx';
-import useLink from '../services/link.tsx';
-import useAccounts from '../services/accounts.tsx';
+import useItems from "../services/items";
+import useTransactions from "../services/transactions";
+import { useUsers } from "../contexts/UsersContext";
+import useAssets from "../services/assets";
+import useLink from "../services/link";
+import useAccounts from "../services/accounts";
 
-import { pluralize } from '../util/index.tsx';
+import { pluralize } from "../util/index";
 
-import Banner from './Banner.tsx';
-import LaunchLink from './LaunchLink.tsx';
-import SpendingInsights from './SpendingInsights.tsx';
-import NetWorth from './NetWorth.tsx';
-import ItemCard from './ItemCard.tsx';
-import UserCard from './UserCard.tsx';
-import LoadingCallout from './LoadingCallout.tsx';
-import ErrorMessage from './ErrorMessage.tsx';
-
+import Banner from "./Banner";
+import LaunchLink from "./LaunchLink";
+import SpendingInsights from "./SpendingInsights";
+import NetWorth from "./NetWorth";
+import ItemCard from "./ItemCard";
+import UserCard from "./UserCard";
+import LoadingCallout from "./LoadingCallout";
+import ErrorMessage from "./ErrorMessage";
 
 // provides view of user's net worth, spending by category and allows them to explore
 // account and transactions details for linked items
 
-const UserPage = ({ match }: RouteComponentProps<RouteInfo>) => {
-  const [user, setUser] = useState({
+const UserPage = () => {
+  const router = useRouter();
+  const { userId: userIdParam } = router.query;
+  const userId = useMemo(() => userIdParam ? Number(userIdParam) : 0, [userIdParam]);
+  
+  // Add ref to track initial data loading to prevent repeated API calls
+  const initialLoad = useRef(false);
+  
+  // Set body overflow to auto to override overflow:hidden from link pane
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.getElementsByTagName('body')[0].style.overflow = 'auto';
+    }
+  }, []);
+  
+  const [user, setUser] = useState<UserType>({
     id: 0,
     username: '',
     created_at: '',
@@ -43,96 +56,239 @@ const UserPage = ({ match }: RouteComponentProps<RouteInfo>) => {
   const [transactions, setTransactions] = useState([]);
   const [accounts, setAccounts] = useState<AccountType[]>([]);
   const [assets, setAssets] = useState<AssetType[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-  const { getTransactionsByUser, transactionsByUser } = useTransactions();
-  const { getAccountsByUser, accountsByUser } = useAccounts();
-  const { assetsByUser, getAssetsByUser } = useAssets();
-  const { usersById, getUserById } = useUsers();
-  const { itemsByUser, getItemsByUser } = useItems();
-  const userId = Number(match.params.userId);
-  const { generateLinkToken, linkTokens } = useLink();
+  // Get services directly without destructuring
+  const transactionsService = useTransactions();
+  const accountsService = useAccounts();
+  const assetsService = useAssets();
+  const usersService = useUsers();
+  const itemsService = useItems();
+  const linkService = useLink();
+  
+  // Memoize the service values to prevent reference changes
+  const transactionsByUser = useMemo(() => 
+    transactionsService?.transactionsByUser || {}, 
+    [transactionsService]
+  );
+  
+  const accountsByUser = useMemo(() => 
+    accountsService?.accountsByUser || {}, 
+    [accountsService]
+  );
+  
+  const assetsByUser = useMemo(() => 
+    assetsService?.assetsByUser || { assets: [] }, 
+    [assetsService]
+  );
+  
+  const usersById = useMemo(() => 
+    usersService?.usersById || {}, 
+    [usersService]
+  );
+  
+  const itemsByUser = useMemo(() => 
+    itemsService?.itemsByUser || {}, 
+    [itemsService]
+  );
+  
+  const linkTokens = useMemo(() => 
+    linkService?.linkTokens || { 
+      byUser: {}, 
+      error: { 
+        error_code: null, 
+        error_type: '', 
+        error_message: '' 
+      } 
+    }, 
+    [linkService]
+  );
+  
+  // Memoize service methods
+  const getTransactionsByUser = useCallback(
+    (userId: UserId) => {
+      if (transactionsService?.getTransactionsByUser) {
+        return transactionsService.getTransactionsByUser(userId);
+      }
+    },
+    [transactionsService]
+  );
+  
+  const getAccountsByUser = useCallback(
+    (userId: UserId) => {
+      if (accountsService?.getAccountsByUser) {
+        return accountsService.getAccountsByUser(userId);
+      }
+    },
+    [accountsService]
+  );
+  
+  const getAssetsByUser = useCallback(
+    (userId: UserId) => {
+      if (assetsService?.getAssetsByUser) {
+        return assetsService.getAssetsByUser(userId);
+      }
+    },
+    [assetsService]
+  );
+  
+  const getUserById = useCallback(
+    (userId: UserId, refresh?: boolean) => {
+      if (usersService?.getUserById) {
+        return usersService.getUserById(userId, refresh);
+      }
+    },
+    [usersService]
+  );
+  
+  const getItemsByUser = useCallback(
+    (userId: UserId, refresh?: boolean) => {
+      if (itemsService?.getItemsByUser) {
+        return itemsService.getItemsByUser(userId, refresh);
+      }
+    },
+    [itemsService]
+  );
+  
+  const generateLinkToken = useCallback(
+    (userId: UserId, param: any) => {
+      if (linkService?.generateLinkToken) {
+        return linkService.generateLinkToken(userId, param);
+      }
+    },
+    [linkService]
+  );
 
-  const initiateLink = async () => {
-    // only generate a link token upon a click from enduser to add a bank;
-    // if done earlier, it may expire before enduser actually activates Link to add a bank.
-    await generateLinkToken(userId, null);
-  };
-
-  // update data store with user
-  useEffect(() => {
-    getUserById(userId, false);
-  }, [getUserById, userId]);
-
-  // set state user from data store
-  useEffect(() => {
-    setUser(usersById[userId] || {});
-  }, [usersById, userId]);
-
-  useEffect(() => {
-    // This gets transactions from the database only.
-    // Note that calls to Plaid's transactions/get endpoint are only made in response
-    // to receipt of a transactions webhook.
-    getTransactionsByUser(userId);
-  }, [getTransactionsByUser, userId]);
-
-  useEffect(() => {
-    setTransactions(transactionsByUser[userId] || []);
-  }, [transactionsByUser, userId]);
-
-  // update data store with the user's assets
-  useEffect(() => {
-    getAssetsByUser(userId);
-  }, [getAssetsByUser, userId]);
-
-  useEffect(() => {
-    setAssets(assetsByUser.assets || []);
-  }, [assetsByUser, userId]);
-
-  // update data store with the user's items
-  useEffect(() => {
-    if (userId != null) {
-      getItemsByUser(userId, true);
+  const initiateLink = useCallback(async () => {
+    try {
+      // only generate a link token upon a click from enduser to add a bank;
+      // if done earlier, it may expire before enduser actually activates Link to add a bank.
+      await generateLinkToken(userId, null);
+    } catch (err) {
+      console.error('Error generating link token:', err);
+      setError('Failed to generate link token');
     }
-  }, [getItemsByUser, userId]);
+  }, [generateLinkToken, userId]);
 
-  // update state items from data store
+  // Fix the token state update to only change when necessary
   useEffect(() => {
-    const newItems: Array<ItemType> = itemsByUser[userId] || [];
+    const userToken = linkTokens.byUser[userId] || '';
+    if (token !== userToken) {
+      setToken(userToken);
+    }
+  }, [linkTokens, userId, token]);
+
+  // Fix the numOfItems state update to only change when necessary
+  useEffect(() => {
+    const newNumOfItems = itemsByUser[userId] != null ? itemsByUser[userId].length : 0;
+    if (numOfItems !== newNumOfItems) {
+      setNumOfItems(newNumOfItems);
+    }
+  }, [itemsByUser, userId, numOfItems]);
+
+  // Fix the items state update to only change when necessary
+  useEffect(() => {
+    const newItems = itemsByUser[userId] || [];
     const orderedItems = sortBy(
       newItems,
       item => new Date(item.updated_at)
     ).reverse();
-    setItems(orderedItems);
-  }, [itemsByUser, userId]);
-
-  // update no of items from data store
-  useEffect(() => {
-    if (itemsByUser[userId] != null) {
-      setNumOfItems(itemsByUser[userId].length);
-    } else {
-      setNumOfItems(0);
+    
+    // Only update if the items have changed - compare IDs to avoid deep comparison
+    const currentIds = items.map(item => item.id).join(',');
+    const newIds = orderedItems.map(item => item.id).join(',');
+    
+    if (currentIds !== newIds) {
+      setItems(orderedItems);
     }
-  }, [itemsByUser, userId]);
+  }, [itemsByUser, userId, items]);
 
-  // update data store with the user's accounts
+  // Fix the transactions state update to only change when necessary
   useEffect(() => {
-    getAccountsByUser(userId);
-  }, [getAccountsByUser, userId]);
+    const userTransactions = transactionsByUser[userId] || [];
+    
+    // Only update if transactions changed - compare length as a simple check
+    if (transactions.length !== userTransactions.length) {
+      setTransactions(userTransactions);
+    }
+  }, [transactionsByUser, userId, transactions]);
 
+  // Fix the accounts state update to only change when necessary
   useEffect(() => {
-    setAccounts(accountsByUser[userId] || []);
-  }, [accountsByUser, userId]);
+    const userAccounts = accountsByUser[userId] || [];
+    
+    // Only update if accounts changed - compare length as a simple check
+    if (accounts.length !== userAccounts.length) {
+      setAccounts(userAccounts);
+    }
+  }, [accountsByUser, userId, accounts]);
 
+  // Fix the assets state update to only change when necessary
   useEffect(() => {
-    setToken(linkTokens.byUser[userId]);
-  }, [linkTokens, userId, numOfItems]);
+    const userAssets = assetsByUser.assets || [];
+    
+    // Only update if assets changed - compare length as a simple check
+    if (assets.length !== userAssets.length) {
+      setAssets(userAssets);
+    }
+  }, [assetsByUser, assets]);
 
-  document.getElementsByTagName('body')[0].style.overflow = 'auto'; // to override overflow:hidden from link pane
+  // Fix the user state update to only change when necessary
+  useEffect(() => {
+    const userData = usersById[userId];
+    if (userData && (!user.id || user.id !== userData.id)) {
+      setUser(userData);
+    }
+  }, [usersById, userId, user]);
+
+  // Modify the data fetching effect to avoid repeated calls
+  useEffect(() => {
+    let mounted = true;
+    
+    // Only fetch once, not on every render
+    if (userId && getUserById && !initialLoad.current) {
+      initialLoad.current = true;
+      
+      try {
+        getUserById(userId, false);
+        
+        // Also fetch related data if not already loaded
+        if (getTransactionsByUser) getTransactionsByUser(userId);
+        if (getItemsByUser) getItemsByUser(userId, true);
+        if (getAccountsByUser) getAccountsByUser(userId);
+        if (getAssetsByUser) getAssetsByUser(userId);
+      } catch (err) {
+        console.error('Error loading user data:', err);
+        if (mounted) {
+          setError('Failed to load user data');
+        }
+      }
+    }
+    
+    return () => {
+      mounted = false;
+    };
+  }, [
+    userId, 
+    getUserById, 
+    getTransactionsByUser, 
+    getItemsByUser, 
+    getAccountsByUser, 
+    getAssetsByUser
+  ]);
+
   return (
     <div>
-      <NavigationLink component={Link} to="/">
-        BACK TO LOGIN
-      </NavigationLink>
+      {error && (
+        <div className="error-message" style={{ color: 'red', padding: '10px', marginBottom: '10px' }}>
+          {error}
+        </div>
+      )}
+      <Link href="/" legacyBehavior>
+        <a className="navigation-link-wrapper">
+          BACK TO LOGIN
+        </a>
+      </Link>
 
       <Banner />
       {linkTokens.error.error_code != null && (

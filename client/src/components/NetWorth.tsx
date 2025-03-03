@@ -2,10 +2,10 @@ import React from 'react';
 import IconButton from 'plaid-threads/IconButton';
 import Trash from 'plaid-threads/Icons/Trash';
 
-import { currencyFilter, pluralize } from '../util/index.tsx';
-import Asset from './Asset.tsx';
+import { currencyFilter, pluralize } from "../util/index";
+import Asset from "./Asset";
 import { AccountType, AssetType } from './types';
-import useAssets from '../services/assets.tsx';
+import useAssets from "../services/assets";
 interface Props {
   numOfItems: number;
   accounts: AccountType[];

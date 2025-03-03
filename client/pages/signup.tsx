@@ -1,15 +1,24 @@
-import { useState } from 'react'
-import { useAuth } from '../contexts/AuthContext'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
+import { Button } from '../src/components/ui'
+import { useAuth } from '../contexts/AuthContext'
 
 export default function Signup() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordError, setPasswordError] = useState('')
-  const { signUp, isLoading, error } = useAuth()
+  
+  const { signUp, error, isLoading, user } = useAuth()
   const router = useRouter()
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (user) {
+      router.push('/dashboard')
+    }
+  }, [user, router])
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -29,8 +38,13 @@ export default function Signup() {
       return
     }
     
-    await signUp(email, password)
-    router.push('/signup-success')
+    try {
+      await signUp(email, password)
+      router.push('/signup-success')
+    } catch (err) {
+      // Error is handled by the auth context
+      console.error('Signup error:', err)
+    }
   }
 
   return (
@@ -91,13 +105,15 @@ export default function Signup() {
               )}
             </div>
             
-            <button
+            <Button
               type="submit"
-              disabled={isLoading}
-              className="w-full rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
+              variant="primary"
+              isLoading={isLoading}
+              size="md"
+              className="w-full"
             >
-              {isLoading ? 'Creating account...' : 'Sign up'}
-            </button>
+              {isLoading ? 'Creating Account...' : 'Create Account'}
+            </Button>
           </form>
           
           <div className="mt-4 text-center text-sm">

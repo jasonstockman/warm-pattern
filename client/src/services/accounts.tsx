@@ -15,7 +15,7 @@ import { AccountType } from '../components/types';
 import {
   getAccountsByItem as apiGetAccountsByItem,
   getAccountsByUser as apiGetAccountsByUser,
-} from './api.tsx';
+} from "./api";
 
 interface AccountsState {
   [accountId: number]: AccountType;

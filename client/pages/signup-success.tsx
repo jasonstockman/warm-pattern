@@ -1,37 +1,51 @@
+import { Button } from '../src/components/ui'
 import Link from 'next/link'
 
 export default function SignupSuccess() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50">
       <div className="w-full max-w-md">
-        <div className="rounded-lg bg-white p-8 text-center shadow-md">
-          <svg
-            className="mx-auto h-16 w-16 text-green-500"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M5 13l4 4L19 7"
-            />
-          </svg>
+        <div className="rounded-lg bg-white p-8 shadow-md">
+          <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-green-100">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-12 w-12 text-green-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+          </div>
           
-          <h2 className="mt-4 text-3xl font-bold">Registration Successful!</h2>
+          <h2 className="mb-2 text-center text-3xl font-bold">Sign Up Successful!</h2>
           
-          <p className="mt-4 text-gray-600">
-            Please check your email for a confirmation link to complete your signup.
+          <p className="mb-6 text-center text-gray-600">
+            Your account has been created successfully. Please check your email to verify your account.
           </p>
           
-          <div className="mt-8">
-            <Link
-              href="/login"
-              className="inline-block rounded-md bg-indigo-600 px-4 py-2 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+          <div className="flex justify-center">
+            <Link href="/login" legacyBehavior>
+              <a>
+                <Button variant="primary" size="md">
+                  Go to Login
+                </Button>
+              </a>
+            </Link>
+          </div>
+          
+          <div className="mt-6 text-center text-sm text-gray-500">
+            Didn't receive an email?{' '}
+            <Link 
+              href="/resend-verification" 
+              className="font-medium text-indigo-600 hover:text-indigo-500"
             >
-              Go to Login
+              Resend verification email
             </Link>
           </div>
         </div>

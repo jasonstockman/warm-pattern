@@ -3,10 +3,15 @@ import { Callout } from 'plaid-threads/Callout';
 import { IconButton } from 'plaid-threads/IconButton';
 import { CloseS2 } from 'plaid-threads/Icons/CloseS2';
 
-import useErrors from '../services/errors.tsx';
+import useErrors from "../services/errors";
+import { isDefined, safeGet } from '../utils/errorHandling';
 
-//  Allows user to input their personal assets such as a house or car.
-
+/**
+ * ErrorMessage component
+ * 
+ * Displays Plaid-related error messages in a callout component
+ * with proper error handling.
+ */
 export default function ErrorMessage() {
   const [show, setShow] = useState(false);
   const [message, setMessage] = useState('');
@@ -27,11 +32,18 @@ export default function ErrorMessage() {
       'NO_ACCOUNTS',
     ];
 
-    if (error.code != null && errors.includes(error.code)) {
+    // Use safer code with isDefined and safeGet
+    const errorCode = safeGet(error, 'code');
+    if (isDefined(errorCode) && errors.includes(errorCode)) {
       setShow(true);
-      setMessage(error.message);
+      setMessage(safeGet(error, 'message', '') || '');
     }
-  }, [error.code, error.message]);
+  }, [error]);
+
+  // Early return if error is not defined or doesn't have a code
+  if (!isDefined(error) || !isDefined(safeGet(error, 'code'))) {
+    return null;
+  }
 
   return (
     <>
@@ -46,7 +58,7 @@ export default function ErrorMessage() {
             }}
             icon={<CloseS2 />}
           />
-          Error: {error.code} <br />
+          Error: {safeGet(error, 'code')} <br />
           {message}
         </Callout>
       )}

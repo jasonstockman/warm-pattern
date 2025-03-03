@@ -26,24 +26,24 @@ This document tracks the progress of migrating the **existing** Plaid Pattern ap
 
 ## Phase 2: Database Migration to Supabase
 
-* [x] Analyze existing schema from `database/init/create.sql`
-  * [x] Document table relationships and dependencies
-  * [x] Identify sequences, functions, and triggers
-  * [x] Note any database-specific PostgreSQL features used
-* [x] Set up Supabase project
-  * [x] Create account and project
-  * [x] Record connection details safely in password manager or similar
-* [x] Adapt schema for Supabase
-  * [x] Convert schema to Supabase-compatible SQL
-  * [x] Add Row Level Security (RLS) policies
-  * [x] Implement Supabase authentication tables and relations
-* [x] Migrate schema and sample data
-  * [x] Run adapted schema scripts in Supabase SQL Editor
-* [x] Create migration scripts for data transfer
-  * [x] Test database functionality with sample queries
-* [x] Generate TypeScript types
-  * [x] Use Supabase CLI to generate type definitions 
-  * [x] Create shared type interfaces for frontend and backend
+* [X] Analyze existing schema from `database/init/create.sql`
+  * [X] Document table relationships and dependencies
+  * [X] Identify sequences, functions, and triggers
+  * [X] Note any database-specific PostgreSQL features used
+* [X] Set up Supabase project
+  * [X] Create account and project
+  * [X] Record connection details safely in password manager or similar
+* [X] Adapt schema for Supabase
+  * [X] Convert schema to Supabase-compatible SQL
+  * [X] Add Row Level Security (RLS) policies
+  * [X] Implement Supabase authentication tables and relations
+* [X] Migrate schema and sample data
+  * [X] Run adapted schema scripts in Supabase SQL Editor
+* [X] Create migration scripts for data transfer
+  * [X] Test database functionality with sample queries
+* [X] Generate TypeScript types
+  * [X] Use Supabase CLI to generate type definitions
+  * [X] Create shared type interfaces for frontend and backend
 
 ## Phase 3: Backend API Server Migration (Railway.app)
 
@@ -207,37 +207,51 @@ This document tracks the progress of migrating the **existing** Plaid Pattern ap
 
 ## Key Files to Migrate
 
-* [ ] `server/util.js` → `server/src/utils/index.ts`
-* [ ] `server/update_transactions.js` → `server/src/services/transactions.ts`
-* [ ] `server/plaid.js` → `server/src/services/plaid.ts`
-* [ ] `server/middleware.js` → `server/src/middleware/index.ts`
-* [ ] `server/index.js` → `server/src/index.ts`
+* [X] `server/util.js` → `server/src/utils/index.ts`
+* [X] `server/update_transactions.js` → `server/src/services/transactions.ts`
+* [X] `server/plaid.js` → `server/src/services/plaid.ts`
+* [X] `server/middleware.js` → `server/src/middleware/index.ts`
+* [X] `server/index.js` → `server/src/index.ts`
+* [X] `server/webhookHandlers/*.js` → `server/src/webhookHandlers/*.ts`
+* [X] `server/routes/services.js` → `server/src/routes/services.ts`
+* [X] `server/routes/users.js` → `server/src/routes/users.ts`
+* [X] Added `server/src/db/queries.ts` with Supabase implementation
+* [X] `server/routes/items.js` → `server/src/routes/items.ts`
+* [X] `server/routes/accounts.js` → `server/src/routes/accounts.ts`
+* [X] `server/routes/institutions.js` → `server/src/routes/institutions.ts`
+* [X] `server/routes/sessions.js` → `server/src/routes/sessions.ts`
+* [X] `server/routes/assets.js` → `server/src/routes/assets.ts`
 * [ ] `database/init/create.sql` → Supabase SQL Editor
 * [ ] `Makefile` commands → npm/pnpm scripts
 
 ## Notes and Decisions
 
 **Database Migration Notes**:
+
 - Consider using pgAdmin or similar tool to analyze existing schema
 - Document any custom PostgreSQL functions that may need adaptation
 - Plan for incremental migration if the database is large
 
 **Backend API Notes**:
+
 - Evaluate Express.js vs. Next.js API routes for certain functionality
 - Consider implementing a layered architecture (controllers, services, repositories)
 - Use zod or similar for runtime type validation
 
 **Frontend Notes**:
+
 - Consider using a component library compatible with Tailwind (Headless UI, Radix)
 - Evaluate React Query vs. SWR for data fetching
 - Plan component structure based on atomic design principles
 
 **Authentication Notes**:
+
 - Determine if JWT or session-based auth is more appropriate
 - Consider MFA requirements
 - Plan for token refresh strategy
 
 **Deployment Notes**:
+
 - Consider setting up a staging environment first
 - Implement database backup strategy before going live
 - Plan for monitoring and observability
@@ -249,10 +263,10 @@ This document tracks the progress of migrating the **existing** Plaid Pattern ap
 * Phase 3: Completed (100%)
 * Phase 4: Completed (100%)
 * Phase 5: Completed (100%)
-* Phase 6: In progress (90% complete)
-* Phase 7: In progress (70% complete)
+* Phase 6: In progress (95% complete)
+* Phase 7: In progress (80% complete)
 * Phase 8: Not started
 * Phase 9: Not started
 * Phase 10: Not started
 
-Last Updated: [Date]
+Last Updated: March 1, 2025

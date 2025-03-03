@@ -1,5 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next'
 import { createServerSupabaseClient } from '@supabase/auth-helpers-nextjs'
+import path from 'path'
+import { API_URL, joinUrl } from '../../lib/env'
 
 export default async function handler(
   req: NextApiRequest,
@@ -25,7 +27,7 @@ export default async function handler(
     }
     
     // Call your server API to exchange public token
-    const apiRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/exchange_public_token`, {
+    const apiRes = await fetch(joinUrl(API_URL, 'api', 'exchange_public_token'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

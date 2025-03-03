@@ -6,8 +6,9 @@ import { Callout } from 'plaid-threads/Callout';
 import { Institution } from 'plaid/dist/api';
 
 import { ItemType, AccountType } from './types';
-import AccountCard from './AccountCard.tsx';
-import MoreDetails from './MoreDetails.tsx';
+import AccountCard from "./AccountCard";
+import MoreDetails from "./MoreDetails";
+import ItemDetailView from "./items/ItemDetailView";
 
 import {
   useAccounts,
@@ -15,8 +16,8 @@ import {
   useItems,
   useTransactions,
 } from '../services';
-import { setItemToBadState } from '../services/api.tsx';
-import { diffBetweenCurrentTime } from '../util/index.tsx';
+import { setItemToBadState } from "../services/api";
+import { diffBetweenCurrentTime } from "../util/index";
 
 const PLAID_ENV = process.env.REACT_APP_PLAID_ENV || 'sandbox';
 
@@ -37,6 +38,7 @@ const ItemCard = (props: Props) => {
     routing_numbers: [],
   });
   const [showAccounts, setShowAccounts] = useState(false);
+  const [viewMode, setViewMode] = useState<'accounts' | 'details'>('accounts');
 
   const { accountsByItem } = useAccounts();
   const { deleteAccountsByItemId } = useAccounts();
@@ -76,6 +78,11 @@ const ItemCard = (props: Props) => {
   const cardClassNames = showAccounts
     ? 'card item-card expanded'
     : 'card item-card';
+  
+  const toggleView = () => {
+    setViewMode(viewMode === 'accounts' ? 'details' : 'accounts');
+  };
+  
   return (
     <div className="box">
       <div className={cardClassNames}>
@@ -98,44 +105,94 @@ const ItemCard = (props: Props) => {
               </Note>
             ) : (
               <Note error solid>
-                Login Required
+                Update Mode
               </Note>
             )}
           </div>
-          <div className="item-card__column-3">
-            <h3 className="heading">LAST UPDATED</h3>
-            <p className="value">
-              {diffBetweenCurrentTime(props.item.updated_at)}
-            </p>
-          </div>
         </Touchable>
-        <MoreDetails // The MoreDetails component allows developer to test the ITEM_LOGIN_REQUIRED webhook and Link update mode
-          setBadStateShown={isSandbox && isGoodState}
-          handleDelete={handleDeleteItem}
-          handleSetBadState={handleSetBadState}
-          userId={props.userId}
-          itemId={id}
-        />
-      </div>
-      {showAccounts && accounts.length > 0 && (
-        <div>
-          {accounts.map(account => (
-            <div key={account.id}>
-              <AccountCard account={account} />
+        
+        {showAccounts && (
+          <div className="item-detail-wrapper">
+            <div className="item-detail-header mb-4 flex justify-between">
+              <div className="view-toggle">
+                <button
+                  className={`mr-4 pb-2 ${viewMode === 'accounts' ? 'border-b-2 border-blue-500 font-semibold text-blue-600' : 'text-gray-500'}`}
+                  onClick={() => setViewMode('accounts')}
+                >
+                  Legacy View
+                </button>
+                <button
+                  className={`pb-2 ${viewMode === 'details' ? 'border-b-2 border-blue-500 font-semibold text-blue-600' : 'text-gray-500'}`}
+                  onClick={() => setViewMode('details')}
+                >
+                  Detailed View
+                </button>
+              </div>
+              
+              {isSandbox && (
+                <div className="sandbox-actions">
+                  {isGoodState ? (
+                    <button
+                      onClick={handleSetBadState}
+                      className="mr-3 rounded bg-yellow-500 px-4 py-2 text-sm font-medium text-white hover:bg-yellow-600"
+                    >
+                      Test Error State
+                    </button>
+                  ) : (
+                    <MoreDetails
+                      setBadStateShown={false}
+                      handleSetBadState={handleSetBadState}
+                      userId={props.userId}
+                      itemId={id}
+                      handleDelete={handleDeleteItem}
+                    />
+                  )}
+                  <button
+                    onClick={handleDeleteItem}
+                    className="rounded bg-red-500 px-4 py-2 text-sm font-medium text-white hover:bg-red-600"
+                  >
+                    Delete Item
+                  </button>
+                </div>
+              )}
             </div>
-          ))}
-        </div>
-      )}
-      {showAccounts && accounts.length === 0 && (
-        <Callout>
-          No transactions or accounts have been retrieved for this item. See the{' '}
-          <InlineLink href="https://github.com/plaid/pattern/blob/master/docs/troubleshooting.md">
-            {' '}
-            troubleshooting guide{' '}
-          </InlineLink>{' '}
-          to learn about receiving transactions webhooks with this sample app.
-        </Callout>
-      )}
+            
+            {viewMode === 'accounts' ? (
+              /* Original accounts view */
+              <>
+                {accounts.map(account => (
+                  <AccountCard key={account.id} account={account} />
+                ))}
+                {accounts.length <= 0 && (
+                  <Callout warning>
+                    No accounts have been created for this item. This may mean that the login
+                    credentials provided were incorrect or that the intitution is experiencing
+                    downtime right now.
+                  </Callout>
+                )}
+                {accounts.length > 0 && 
+                  <p className="item-card__last-update">
+                    Last updated: {diffBetweenCurrentTime(accounts[0].updated_at)}
+                  </p>
+                }
+                {!isGoodState && isSandbox && (
+                  <InlineLink onClick={handleSetBadState}>
+                    You're in update mode!
+                    <br />
+                    Click to reset
+                  </InlineLink>
+                )}
+              </>
+            ) : (
+              /* New detailed view */
+              <ItemDetailView 
+                itemId={Number(id)} 
+                institutionName={institution && institution.name} 
+              />
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

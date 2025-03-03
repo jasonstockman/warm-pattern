@@ -1,15 +1,18 @@
 import React from 'react';
-import { pluralize } from '../util/index.tsx';
-
-import { formatDate } from '../util/index.tsx';
-import { UserType } from './types';
+import { pluralize, formatDate } from "../util/index";
+import { User } from '../types';
 
 interface Props {
-  user: UserType;
+  user: User;
   numOfItems: number;
   hovered: boolean;
 }
 
+/**
+ * UserDetails component
+ * 
+ * Displays detailed information about a user.
+ */
 const UserDetails = (props: Props) => (
   <>
     <div className="user-card__column-1">

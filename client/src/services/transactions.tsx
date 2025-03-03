@@ -17,7 +17,7 @@ import {
   getTransactionsByAccount as apiGetTransactionsByAccount,
   getTransactionsByItem as apiGetTransactionsByItem,
   getTransactionsByUser as apiGetTransactionsByUser,
-} from './api.tsx';
+} from "./api";
 import { Dictionary } from 'lodash';
 
 interface TransactionsState {

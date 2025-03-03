@@ -6,15 +6,21 @@ export default function AuthCallback() {
   const router = useRouter()
 
   useEffect(() => {
-    const { hash } = window.location
-    if (hash) {
-      supabase.auth.onAuthStateChange(async (event) => {
-        if (event === 'SIGNED_IN') {
-          // Redirect to dashboard after sign in
+    // More robust handling of hash and query parameters
+    const handleAuthCallback = async () => {
+      const { hash, search } = window.location
+      
+      // Handle both hash and query parameter auth flows
+      if (hash || search) {
+        const authResponse = await supabase.auth.getSession()
+        
+        if (authResponse.data.session) {
           router.push('/dashboard')
         }
-      })
+      }
     }
+    
+    handleAuthCallback()
   }, [router])
 
   return (

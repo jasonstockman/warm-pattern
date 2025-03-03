@@ -1,0 +1,124 @@
+{
+    "rules": [
+      {
+        "name": "Enable strict type checking",
+        "description": "Ensure TypeScript is configured with strict type checking",
+        "severity": "error",
+        "check": {
+          "files": ["tsconfig.json"],
+          "content": "\"strict\": true"
+        }
+      },
+      {
+        "name": "Type API interfaces",
+        "description": "All API requests and responses should have explicit type interfaces",
+        "severity": "error",
+        "check": {
+          "files": ["**/api/**/*.ts", "**/controllers/**/*.ts", "**/routes/**/*.ts"],
+          "pattern": "interface [A-Z][a-zA-Z]*Request|interface [A-Z][a-zA-Z]*Response"
+        }
+      },
+      {
+        "name": "Avoid any type",
+        "description": "Avoid using 'any' type to maintain type safety",
+        "severity": "warning",
+        "check": {
+          "files": ["**/*.ts"],
+          "pattern": ": any[,\\s}]|any\\["
+        },
+        "negative": true
+      },
+      {
+        "name": "Validate input with validation libraries",
+        "description": "Use validation libraries for runtime type checking",
+        "severity": "warning",
+        "check": {
+          "files": ["**/controllers/**/*.ts", "**/routes/**/*.ts"],
+          "pattern": "import.*(?:zod|joi|class-validator)"
+        }
+      },
+      {
+        "name": "Use async/await",
+        "description": "Prefer async/await over callbacks and raw promises",
+        "severity": "info",
+        "check": {
+          "files": ["**/*.ts"],
+          "pattern": "\\.then\\(|\\bcallback\\("
+        },
+        "negative": true
+      },
+      {
+        "name": "Implement error handling",
+        "description": "Implement proper error handling with try/catch blocks",
+        "severity": "warning",
+        "check": {
+          "files": ["**/*.ts"],
+          "pattern": "try\\s*{[\\s\\S]*}\\s*catch"
+        }
+      },
+      {
+        "name": "Type environment variables",
+        "description": "Ensure environment variables are accessed through type-safe wrappers",
+        "severity": "warning",
+        "check": {
+          "files": ["**/config/**/*.ts", "**/env/**/*.ts"],
+          "pattern": "process\\.env\\."
+        },
+        "negative": true
+      },
+      {
+        "name": "Use discriminated unions for state",
+        "description": "Implement discriminated unions for state management in client code",
+        "severity": "info",
+        "check": {
+          "files": ["**/state/**/*.ts", "**/store/**/*.ts"],
+          "pattern": "type.*\\{[\\s\\S]*kind:.*[\\s\\S]*\\}"
+        }
+      },
+      {
+        "name": "Typed API client functions",
+        "description": "Ensure API client functions have proper return type annotations",
+        "severity": "warning",
+        "check": {
+          "files": ["**/api/**/*.ts", "**/services/**/*.ts"],
+          "pattern": "async function.*\\): Promise<[A-Z][a-zA-Z]*>|const.*= async.*\\): Promise<[A-Z][a-zA-Z]*>"
+        }
+      },
+      {
+        "name": "Null checking",
+        "description": "Implement null/undefined checks before accessing potentially nullable properties",
+        "severity": "error",
+        "check": {
+          "files": ["**/*.ts"],
+          "pattern": "\\?\\.|\\bif\\s*\\([^\\)]*(?:===|!==)\\s*(?:null|undefined)"
+        }
+      },
+      {
+        "name": "Separate domain models",
+        "description": "Create domain models separate from database models",
+        "severity": "info",
+        "check": {
+          "files": ["**/models/**/*.ts", "**/domain/**/*.ts"],
+          "pattern": "class [A-Z][a-zA-Z]* implements [A-Z][a-zA-Z]*(?:Model|Entity)"
+        }
+      },
+      {
+        "name": "Typed components props",
+        "description": "Ensure React/UI components have proper prop type interfaces",
+        "severity": "error",
+        "check": {
+          "files": ["**/components/**/*.tsx", "**/pages/**/*.tsx"],
+          "pattern": "interface [A-Z][a-zA-Z]*Props|type [A-Z][a-zA-Z]*Props"
+        }
+      },
+      {
+        "name": "Form validation types",
+        "description": "Implement proper typing for forms and validation",
+        "severity": "warning",
+        "check": {
+          "files": ["**/forms/**/*.ts", "**/components/**/*.tsx"],
+          "pattern": "interface [A-Z][a-zA-Z]*FormValues|type [A-Z][a-zA-Z]*FormValues"
+        }
+      }
+    ]
+  }

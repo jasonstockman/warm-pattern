@@ -27,7 +27,7 @@ type ErrorsAction =
 interface ErrorsContextShape extends ErrorsState {
   dispatch: Dispatch<ErrorsAction>;
   setError: (code: string, message: string | null) => void;
-  error: { code: string; message: string };
+  error: ErrorsState;
   resetError: () => void;
 }
 const ErrorsContext = createContext<ErrorsContextShape>(
@@ -45,10 +45,10 @@ export const ErrorsProvider: React.FC<{ children: ReactNode }> = (
   /**
    * @desc Sets error from onEvent callback.
    */
-  const setError = useCallback(async (code: string, message: string) => {
+  const setError = useCallback(async (code: string, message: string | null) => {
     dispatch({
       type: 'SET_ERROR',
-      payload: { code: code, message: message },
+      payload: { code: code, message: message || '' },
     });
   }, []);
 
@@ -71,6 +71,7 @@ export const ErrorsProvider: React.FC<{ children: ReactNode }> = (
       setError,
       error,
       resetError,
+      dispatch,
     };
   }, [setError, error, resetError]);
 
@@ -106,7 +107,7 @@ export default function useErrors() {
   const context = useContext(ErrorsContext);
 
   if (!context) {
-    throw new Error(`useErrorsmust be used within an ErrorsProvider`);
+    throw new Error(`useErrors must be used within an ErrorsProvider`);
   }
 
   return context;

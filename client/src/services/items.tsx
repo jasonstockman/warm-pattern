@@ -18,7 +18,7 @@ import {
   getItemsByUser as apiGetItemsByUser,
   getItemById as apiGetItemById,
   deleteItemById as apiDeleteItemById,
-} from './api.tsx';
+} from "./api";
 
 interface ItemsState {
   [itemId: number]: ItemType;
@@ -71,7 +71,7 @@ export function ItemsProvider(props: any) {
   /**
    * @desc Requests all Items that belong to an individual User.
    */
-  const getItemsByUser = useCallback(async userId => {
+  const getItemsByUser = useCallback(async (userId, refresh = false) => {
     const { data: payload } = await apiGetItemsByUser(userId);
     dispatch({ type: 'SUCCESSFUL_REQUEST', payload: payload });
   }, []);

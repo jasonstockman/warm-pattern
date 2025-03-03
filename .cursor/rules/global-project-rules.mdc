@@ -1,0 +1,129 @@
+---
+description: applies for everything
+globs: 
+alwaysApply: false
+---
+{
+  "checkers": [
+    {
+      "name": "enable-strict-type-checking",
+      "description": "Ensure TypeScript is configured with strict type checking",
+      "severity": "error",
+      "pattern": {
+        "file": "tsconfig.json",
+        "match": "\"strict\": true"
+      }
+    },
+    {
+      "name": "type-api-interfaces",
+      "description": "All API requests and responses should have explicit type interfaces",
+      "severity": "error",
+      "pattern": {
+        "files": ["**/api/**/*.ts", "**/controllers/**/*.ts", "**/routes/**/*.ts"],
+        "match": "interface [A-Z][a-zA-Z]*Request|interface [A-Z][a-zA-Z]*Response"
+      }
+    },
+    {
+      "name": "avoid-any-type",
+      "description": "Avoid using 'any' type to maintain type safety",
+      "severity": "warning",
+      "pattern": {
+        "files": ["**/*.ts"],
+        "match": ": any[,\\s}]|any\\[",
+        "negate": true
+      }
+    },
+    {
+      "name": "use-validation-libraries",
+      "description": "Use validation libraries for runtime type checking",
+      "severity": "warning",
+      "pattern": {
+        "files": ["**/controllers/**/*.ts", "**/routes/**/*.ts"],
+        "match": "import.*(?:zod|joi|class-validator)"
+      }
+    },
+    {
+      "name": "prefer-async-await",
+      "description": "Prefer async/await over callbacks and raw promises",
+      "severity": "info",
+      "pattern": {
+        "files": ["**/*.ts"],
+        "match": "\\.then\\(|\\bcallback\\(",
+        "negate": true
+      }
+    },
+    {
+      "name": "implement-error-handling",
+      "description": "Implement proper error handling with try/catch blocks",
+      "severity": "warning",
+      "pattern": {
+        "files": ["**/*.ts"],
+        "match": "try\\s*{[\\s\\S]*}\\s*catch"
+      }
+    },
+    {
+      "name": "type-environment-variables",
+      "description": "Ensure environment variables are accessed through type-safe wrappers",
+      "severity": "warning",
+      "pattern": {
+        "files": ["**/config/**/*.ts", "**/env/**/*.ts"],
+        "match": "process\\.env\\.",
+        "negate": true
+      }
+    },
+    {
+      "name": "use-discriminated-unions",
+      "description": "Implement discriminated unions for state management in client code",
+      "severity": "info",
+      "pattern": {
+        "files": ["**/state/**/*.ts", "**/store/**/*.ts"],
+        "match": "type.*\\{[\\s\\S]*kind:.*[\\s\\S]*\\}"
+      }
+    },
+    {
+      "name": "typed-api-client-functions",
+      "description": "Ensure API client functions have proper return type annotations",
+      "severity": "warning",
+      "pattern": {
+        "files": ["**/api/**/*.ts", "**/services/**/*.ts"],
+        "match": "async function.*\\): Promise<[A-Z][a-zA-Z]*>|const.*= async.*\\): Promise<[A-Z][a-zA-Z]*>"
+      }
+    },
+    {
+      "name": "implement-null-checking",
+      "description": "Implement null/undefined checks before accessing potentially nullable properties",
+      "severity": "error",
+      "pattern": {
+        "files": ["**/*.ts"],
+        "match": "\\?\\.|\\bif\\s*\\([^\\)]*(?:===|!==)\\s*(?:null|undefined)"
+      }
+    },
+    {
+      "name": "separate-domain-models",
+      "description": "Create domain models separate from database models",
+      "severity": "info",
+      "pattern": {
+        "files": ["**/models/**/*.ts", "**/domain/**/*.ts"],
+        "match": "class [A-Z][a-zA-Z]* implements [A-Z][a-zA-Z]*(?:Model|Entity)"
+      }
+    },
+    {
+      "name": "typed-component-props",
+      "description": "Ensure React/UI components have proper prop type interfaces",
+      "severity": "error",
+      "pattern": {
+        "files": ["**/components/**/*.tsx", "**/pages/**/*.tsx"],
+        "match": "interface [A-Z][a-zA-Z]*Props|type [A-Z][a-zA-Z]*Props"
+      }
+    },
+    {
+      "name": "form-validation-types",
+      "description": "Implement proper typing for forms and validation",
+      "severity": "warning",
+      "pattern": {
+        "files": ["**/forms/**/*.ts", "**/components/**/*.tsx"],
+        "match": "interface [A-Z][a-zA-Z]*FormValues|type [A-Z][a-zA-Z]*FormValues"
+      }
+    }
+  ]
+}

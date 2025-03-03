@@ -12,15 +12,16 @@ import omit from 'lodash/omit';
 import { toast } from 'react-toastify';
 
 import { UserType } from '../components/types';
-import useItems from './items.tsx';
-import useAccounts from './accounts.tsx';
-import useTransactions from './transactions.tsx';
+import useItems from './items';
+import useAccounts from './accounts';
+import useTransactions from './transactions';
 import {
   getUsers as apiGetUsers,
   getUserById as apiGetUserById,
   addNewUser as apiAddNewUser,
   deleteUserById as apiDeleteUserById,
-} from './api.tsx';
+} from './api';
+import { useUsers } from '../contexts/UsersContext';
 
 interface UsersState {
   [key: string]: UserType | any;
@@ -160,12 +161,4 @@ function reducer(state: UsersState, action: UsersAction | any) {
 /**
  * @desc A convenience hook to provide access to the Users context state in components.
  */
-export default function useUsers() {
-  const context = useContext(UsersContext);
-
-  if (!context) {
-    throw new Error(`useUsers must be used within a UsersProvider`);
-  }
-
-  return context;
-}
+export default useUsers;

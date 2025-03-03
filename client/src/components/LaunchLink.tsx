@@ -10,19 +10,17 @@ import {
 } from 'react-plaid-link';
 import { useHistory } from 'react-router-dom';
 
-import { logEvent, logSuccess, logExit } from '../util/index.tsx'; // functions to log and save errors and metadata from Link events
+import { logEvent, logSuccess, logExit } from "../util/index"; // functions to log and save errors and metadata from Link events
 
-import useItems from '../services/items.tsx';
-import useLink from '../services/link.tsx';
-import useErrors from '../services/errors.tsx';
-
-import { exchangeToken, setItemState } from '../services/api.tsx'
+import { useItemActions, useLinkActions } from "../store";
+import { exchangeToken, setItemState } from "../services/api"
+import { UserId, ItemId } from '../types';
 
 interface Props {
   isOauth?: boolean;
   token: string;
-  userId: number;
-  itemId?: number | null;
+  userId: UserId;
+  itemId?: ItemId | null;
   children?: React.ReactNode;
 }
 
@@ -32,9 +30,8 @@ interface Props {
 
 export default function LaunchLink(props: Props) {
   const history = useHistory();
-  const { getItemsByUser, getItemById } = useItems();
-  const { generateLinkToken, deleteLinkToken } = useLink();
-  const { setError, resetError } = useErrors();
+  const { getItemById, getItemsByUser } = useItemActions();
+  const { generateLinkToken, deleteLinkToken, resetError } = useLinkActions();
 
   // define onSuccess, onExit and onEvent functions as configs for Plaid Link creation
   const onSuccess = async (
@@ -48,9 +45,8 @@ export default function LaunchLink(props: Props) {
       await setItemState(props.itemId, 'good');
       deleteLinkToken(null, props.itemId);
       getItemById(props.itemId, true);
-      // regular link mode: exchange public token for access token
     } else {
-      // call to Plaid api endpoint: /item/public_token/exchange in order to obtain access_token which is then stored with the created item
+      // regular link mode: exchange public token for access token
       await exchangeToken(
         publicToken,
         metadata.institution,
@@ -71,12 +67,12 @@ export default function LaunchLink(props: Props) {
     // log and save error and metatdata
     logExit(error, metadata, props.userId);
     if (error != null && error.error_code === 'INVALID_LINK_TOKEN') {
-      await generateLinkToken(props.userId, props.itemId);
+      const itemId = props.itemId ?? null;
+      await generateLinkToken(props.userId, itemId);
     }
     if (error != null) {
-      setError(error.error_code, error.display_message || error.error_message);
+      // to handle other error codes, see https://plaid.com/docs/errors/
     }
-    // to handle other error codes, see https://plaid.com/docs/errors/
   };
 
   const onEvent = async (
@@ -84,9 +80,6 @@ export default function LaunchLink(props: Props) {
     metadata: PlaidLinkOnEventMetadata
   ) => {
     // handle errors in the event end-user does not exit with onExit function error enabled.
-    if (eventName === 'ERROR' && metadata.error_code != null) {
-      setError(metadata.error_code, ' ');
-    }
     logEvent(eventName, metadata);
   };
 

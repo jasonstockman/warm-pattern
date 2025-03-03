@@ -1,4 +1,4 @@
-import { distanceInWords, parse } from 'date-fns';
+import { formatDistanceToNow, parseISO } from 'date-fns';
 import {
   PlaidLinkOnSuccessMetadata,
   PlaidLinkOnExitMetadata,
@@ -7,7 +7,7 @@ import {
   PlaidLinkError,
 } from 'react-plaid-link';
 
-import { postLinkEvent as apiPostLinkEvent } from '../services/api.tsx';
+import { postLinkEvent as apiPostLinkEvent } from '../services/api';
 
 /**
  * @desc small helper for pluralizing words for display given a number of items
@@ -65,7 +65,7 @@ export function formatDate(timestamp: string) {
  * @desc Checks the difference between the current time and a provided time
  */
 export function diffBetweenCurrentTime(timestamp: string) {
-  return distanceInWords(new Date(), parse(timestamp), {
+  return formatDistanceToNow(parseISO(timestamp), {
     addSuffix: true,
     includeSeconds: true,
   }).replace(/^(about|less than)\s/i, '');
@@ -124,3 +124,9 @@ export const logExit = async (
     status,
   });
 };
+
+export type LinkSuccessMetadata = PlaidLinkOnSuccessMetadata;
+export type LinkExitMetadata = PlaidLinkOnExitMetadata;
+export type LinkEventMetadata = PlaidLinkOnEventMetadata;
+export type LinkEventName = PlaidLinkStableEvent;
+export type LinkError = PlaidLinkError;

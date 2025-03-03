@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 
-import { currencyFilter, pluralize } from '../util/index.tsx';
-import CategoriesChart from './CategoriesChart.tsx';
+import { currencyFilter, pluralize } from "../util/index";
+import CategoriesChart from "./CategoriesChart";
 import { TransactionType } from './types';
 
 interface Props {

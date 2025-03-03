@@ -56,6 +56,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const getRedirectUrl = () => {
+    return new URL('/auth/callback', window.location.origin).toString()
+  }
+
   const signUp = async (email: string, password: string) => {
     try {
       setIsLoading(true)
@@ -64,7 +68,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         email, 
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`
+          emailRedirectTo: getRedirectUrl()
         }
       })
       if (error) throw error
