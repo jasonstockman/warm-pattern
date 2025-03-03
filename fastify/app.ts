@@ -12,6 +12,7 @@ import { fastifySwagger } from '@fastify/swagger';
 import { fastifySwaggerUi } from '@fastify/swagger-ui';
 import { Server as HttpServer, IncomingMessage, ServerResponse } from 'http';
 import { Server as SocketServer, Socket } from 'socket.io';
+import fp from 'fastify-plugin';
 
 // Import configuration schema
 import { envSchema } from './config/env';
@@ -26,6 +27,17 @@ import profileRoutes from './routes/profile';
 import userRoutes from './routes/users';
 import authMiddleware from './middleware/auth';
 
+// Plugin to fix deprecated routeConfig property
+const routeConfigFixPlugin = fp(async (fastify) => {
+  // Add hooks to capture route config and properly store it in routeOptions.config
+  fastify.addHook('onRoute', (routeOptions) => {
+    // Make sure routeOptions.config exists to avoid deprecated routeConfig property
+    if (!routeOptions.config) {
+      routeOptions.config = {};
+    }
+  });
+});
+
 async function buildApp(): Promise<FastifyInstance> {
   // Create Fastify instance
   const app = fastify({
@@ -39,6 +51,9 @@ async function buildApp(): Promise<FastifyInstance> {
       },
     },
   });
+
+  // Register the fix for deprecated routeConfig
+  await app.register(routeConfigFixPlugin);
 
   // Register env plugin
   await app.register(fastifyEnv, {
@@ -121,6 +136,26 @@ async function buildApp(): Promise<FastifyInstance> {
   await app.register(transactionRoutes, { prefix: '/transactions' } as const);
   await app.register(profileRoutes, { prefix: '/profiles' } as const);
   await app.register(userRoutes, { prefix: '/users' } as const);
+
+  // Add a rewrite route for /users/me to /auth/me for compatibility with client requests
+  app.get('/users/me', {
+    schema: {
+      hide: true, // Hide from Swagger documentation
+    },
+    handler: async (request, reply) => {
+      // Forward the request to the /auth/me endpoint
+      const response = await app.inject({
+        method: 'GET',
+        url: '/auth/me',
+        headers: request.headers as any,
+      });
+
+      reply
+        .code(response.statusCode)
+        .headers(response.headers)
+        .send(response.payload);
+    }
+  });
 
   // Health check route
   app.get('/health', {

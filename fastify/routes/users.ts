@@ -9,13 +9,13 @@ const userRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   // Use Zod for request/response validation
   const server = fastify.withTypeProvider<ZodTypeProvider>();
 
-  // GET /users/me - Get current user's profile
+  // GET /users - Get all users (placeholder for future implementation)
   server.route({
     method: 'GET',
-    url: '/me',
+    url: '/',
     schema: {
-      summary: 'Get current user',
-      description: 'Retrieves the profile of the currently authenticated user',
+      summary: 'Get all users',
+      description: 'Retrieves a list of users with optional pagination and filtering',
       tags: ['users'],
       response: {
         200: {
@@ -23,25 +23,18 @@ const userRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
           required: ['data'],
           properties: {
             data: {
-              type: 'object',
-              required: ['id', 'email'],
-              properties: {
-                id: { type: 'string', format: 'uuid' },
-                email: { type: 'string', format: 'email' },
-                name: { type: 'string' },
-                avatarUrl: { type: 'string', nullable: true },
-                createdAt: { type: 'string', format: 'date-time' },
-                updatedAt: { type: 'string', format: 'date-time' }
+              type: 'array',
+              items: {
+                type: 'object',
+                required: ['id', 'email'],
+                properties: {
+                  id: { type: 'string', format: 'uuid' },
+                  email: { type: 'string', format: 'email' },
+                  name: { type: 'string' },
+                  avatarUrl: { type: 'string', nullable: true }
+                }
               }
             }
-          }
-        },
-        401: {
-          type: 'object',
-          required: ['error', 'message'],
-          properties: {
-            error: { type: 'string' },
-            message: { type: 'string' }
           }
         },
         500: {
@@ -58,39 +51,27 @@ const userRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     onRequest: [fastify.requireAuth],
     handler: async (request, reply) => {
       try {
-        const user = request.user;
-        
-        if (!user || !user.id) {
-          return reply.status(401).send({
-            error: 'Unauthorized',
-            message: 'User not authenticated'
-          });
-        }
-        
-        // Get user profile from database
-        const { data: profile, error } = await fastify.supabase
+        // Get all users from database
+        const { data: users, error } = await fastify.supabase
           .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
+          .select('id, email, name, avatar_url')
+          .limit(100);
         
-        if (error || !profile) {
-          fastify.log.error(error || new Error('User profile not found'));
-          return reply.status(404).send({
-            error: 'Not Found',
-            message: 'User profile not found'
+        if (error) {
+          fastify.log.error(error);
+          return reply.status(500).send({
+            error: 'Internal Server Error',
+            message: error.message
           });
         }
         
         return {
-          data: {
-            id: profile.id,
-            email: profile.email,
-            name: profile.name,
-            avatarUrl: profile.avatar_url,
-            createdAt: profile.created_at,
-            updatedAt: profile.updated_at
-          }
+          data: users.map(user => ({
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            avatarUrl: user.avatar_url
+          }))
         };
       } catch (err) {
         fastify.log.error(err);
